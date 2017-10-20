@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://d3js.org/topojson.v1.min.js"></script>
+    <script src="http://dimplejs.org/dist/dimple.v2.0.0.min.js"></script>
+      <style>
+
+        .background {
+          fill: none;
+          pointer-events: all;
+        }
+
+        .feature {
+          fill: #ccc;
+          cursor: pointer;
+        }
+
+        .feature.active {
+          fill: green;
+        }
+
+        .mesh {
+          fill: none;
+          stroke: #fff;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+        }
+
+        g.mapa {
+          position: fixed;
+          top: 50px;
+          left: 20px;
+        }
+
+        g.expostos {
+          position: fixed;
+          top: 35px;
+          left: 780px;
+        }
+
+        g.sinistros {
+          position: fixed;
+          top: 220px;
+          left: 780px;
+        }   
+
+        g.indice {
+          position: fixed;
+          top: 425px;
+          left: 780px;
+        }
+
+        h2 {
+        text-align: center;
+        color: black;
+        }             
+
+      </style>
+    <script>
+
+      function chart(error, brms) {
+
+        if (error) throw error;
+
+        d3.select("body")
+          .append("h2")
+          .text("Mapa dos Indíces de Seguro do FORD FIESTA 1.6 RoCam");
+
+        var width = 750,
+          height = 800,
+          active = d3.select(null);
+
+        var projection = d3.geo.mercator()
+            .scale(700)
+            .translate([1000, 140]);
+
+        var path = d3.geo.path()
+            .projection(projection);
+
+        var svg = d3.select("body")
+            .append("g")
+            .attr("class", "mapa")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+        svg.append("rect")
+            .attr("class", "background")
+            .attr("width", width)
+            .attr("height", height)
+            .on("click", reset);
+
+        var g = svg.append("g")
+            .style("stroke-width", "1.5px");
+
+        g.selectAll("path")
+            .data(topojson.feature(brms, brms.objects.Meso).features)
+            .enter().append("path")
+            .attr("d", path)
+            .attr("class", "feature")
+            .on("click", clicked);
+
+        g.append("path")
+            .datum(topojson.mesh(brms, brms.objects.Meso, function(a, b) { return a !== b; }))
+            .attr("class", "mesh")
+            .attr("d", path);
+
+        //Chamando o arquivo de dados sobre seguros do veículo
+        d3.csv("fiestaTODOS.csv", plotingDados);
+
+              //Function that generates a response to the clink on one of the regions
+              function clicked(d) {
+                if (active.node() === this) return reset();
+                active.classed("active", false);
+                active = d3.select(this).classed("active", true);
+
+                var x = retornaDados();
+
+                //d3.select(this).datum().properties.name
+
+                debugger;
+
+                var bounds = path.bounds(d),
+                    dx = bounds[1][0] - bounds[0][0],
+                    dy = bounds[1][1] - bounds[0][1],
+                    x = (bounds[0][0] + bounds[1][0]) / 2,
+                    y = (bounds[0][1] + bounds[1][1]) / 2,
+                    scale = .5 / Math.max(dx / width, dy / height),
+                    translate = [width / 2 - scale * x, height / 2 - scale * y];
+
+                g.transition()
+                    .duration(750)
+                    .style("stroke-width", 1.5 / scale + "px")
+                    .attr("transform", "translate(" + translate + ")scale(" + scale + ")");
+              }
+
+              //Function that generates a response after the region is selected and is clicked again
+              function reset() {
+                active.classed("active", false);
+                active = d3.select(null);
+
+                g.transition()
+                    .duration(750)
+                    .style("stroke-width", "1.5px")
+                    .attr("transform", "");
+              }
+
+              function plotingDados(error, dadosCarro) {
+
+                if (error) throw error;
+
+                function retornaDados(){
+                  return dadosCarro;
+                }
+
+                //Criando uma variável para armazenar os anos
+                var years = d3.set();
+                dadosCarro.forEach(function(d)
+                  {
+                    years.add(d.ano);
+                  });
+
+                var nested = d3.nest()
+                  .key(function(d) {
+                    return d['ano'];
+                  })
+                  .entries(dadosCarro);
+
+                function key_func(d) {
+                    return d['key'];
+                }
+
+                function aux_3_chart(d) {
+
+                  d3.selectAll(".aux").remove();
+
+                  //Criando as cavas que serao utilizadas pelo charts acessorios
+                  var canvas_expostos = d3.select("body")
+                    .append("g")
+                      .attr("class", "expostos")
+                    .append("svg")
+                      .attr("class", "aux")
+                      .attr("width", 200)
+                      .attr("height", 200);
+
+                  var canvas_sinistros = d3.select("body")
+                    .append("g")
+                      .attr("class", "sinistros")
+                    .append("svg")
+                      .attr("class", "aux")
+                      .attr("width", 200)
+                      .attr("height", 200);
+
+                  var canvas_indice = d3.select("body")
+                    .append("g")
+                      .attr("class", "indice")
+                    .append("svg")
+                      .attr("class", "aux")
+                      .attr("width", 200)
+                      .attr("height", 200);
+
+                  var myChart = new dimple.chart(canvas_expostos, d);
+                  var x = myChart.addTimeAxis("x", "ano", "%Y", "%Y");
+                  x.addOrderRule("Date");
+                  x.overrideMin = d3.time.format("%Y%m%d").parse("20090601");
+                  myChart.addMeasureAxis("y", "expostos");
+                  myChart.addSeries(null, dimple.plot.line);
+                  myChart.addSeries(null, dimple.plot.scatter)
+                  myChart.setBounds(60, 30, 70, 100)
+                  myChart.draw();
+
+                  var myChart = new dimple.chart(canvas_sinistros, d);
+                  var x = myChart.addTimeAxis("x", "ano", "%Y", "%Y");
+                  x.addOrderRule("Date");
+                  x.overrideMin = d3.time.format("%Y%m%d").parse("20090601");
+                  myChart.addMeasureAxis("y", "freq_inc_roub");
+                  myChart.addSeries(null, dimple.plot.line);
+                  myChart.addSeries(null, dimple.plot.scatter)
+                  myChart.setBounds(60, 30, 70, 100)
+                  myChart.draw();
+
+                  var myChart = new dimple.chart(canvas_indice, d);
+                  var x = myChart.addTimeAxis("x", "ano", "%Y", "%Y");
+                  x.addOrderRule("Date");
+                  x.overrideMin = d3.time.format("%Y%m%d").parse("20090601"); 
+                  myChart.addMeasureAxis("y", "inc_roub_relativo");
+                  myChart.addSeries(null, dimple.plot.line);
+                  myChart.addSeries(null, dimple.plot.scatter)
+                  myChart.setBounds(60, 30, 70, 100)
+                  myChart.draw();
+
+                }
+
+                function update(year) {
+
+                  //Variavel que filtra somente o ano informado
+                  var filtered = nested.filter(function(d) {
+                      return d['key'] == year;
+                  });
+
+                  var nFiltered = dadosCarro.filter(function(d){
+                    return parseInt(d.ano) <= year;
+                  });
+
+                  d3.select("h2")
+                    .text("Evolução durante os anos: " + year);
+
+                  //Criando variavel para calcular a media dos valores do indice de roubo
+                  var meanindice = d3.mean(filtered[0].values, function(d) {
+                        return d.inc_roub_relativo;
+                  })
+
+                  //Criando variavel para guardar a lista de mesoregioes
+                  var meso = []
+                  filtered[0].values.forEach(function(d) {
+                    meso.push(d.mesoregiao);
+                  });
+
+                  //Dicionario com par de valores mesoregiao e indice de sinistro
+                  var indMeso = {}
+                  filtered[0].values.forEach(function(d) {
+                    indMeso[d.mesoregiao] = parseFloat(d.inc_roub_relativo);
+                  });
+
+                  //Funcao para colorir as mesoregioes de acordo com o nivel de sinistro de veiculos
+                  function update_countries(d) {
+                    try {
+                          if (meso.indexOf(d.properties.name) !== -1 && indMeso[d.properties.name] <= meanindice) {
+                            return "green";
+                          } else if (meso.indexOf(d.properties.name) !== -1 && indMeso[d.properties.name] > meanindice) {
+                            return "red";
+                          }
+                            else {
+                            return "lightgray";
+                          }
+                        }
+                    catch(error) {
+                    }
+                  }
+
+                  svg.selectAll('path')
+                     .transition()
+                     .duration(500)
+                     .style('fill', update_countries)
+                     .style('stroke', update_countries);
+
+                  aux_3_chart(nFiltered);
+
+                
+                }
+
+                //Bloco de codigo para fazer o grafico iterar entre os anos.
+                //debugger;
+                var year_idx = 0
+
+                var year_interval = setInterval(function() {
+                  update(years.values()[year_idx]);
+
+                  year_idx++;
+
+                  if(year_idx >= years.size()) {
+                      clearInterval(year_interval);
+                  }
+                }, 1500);
+
+              } 
+
+      }
+
+    </script>
+  </head>
+<body>
+  <script type="text/javascript">
+    /*
+      Use D3 to load the GeoJSON file
+    */
+    
+d3.json("ms.json", chart);
+
+  </script>
+</body>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://d3js.org/topojson.v1.min.js"></script>
+    <script src="http://dimplejs.org/dist/dimple.v2.0.0.min.js"></script>
+    <script src="codescript.js"></script>
+      <style>
+
+        .background {
+          fill: none;
+          pointer-events: all;
+        }
+
+        .feature {
+          fill: #ccc;
+          cursor: pointer;
+        }
+
+        .feature.active {
+          fill: green;
+        }
+
+        .mesh {
+          fill: none;
+          stroke: #fff;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+        }
+
+        g.mapa {
+          position: fixed;
+          top: 50px;
+          left: 20px;
+        }
+
+        g.aux {
+          position: fixed;
+          top: 35px;
+          left: 780px;
+          bottom: 450px;
+        }
+
+        svg.expostos {
+          position: fixed;
+          top: 65px;
+          left: 780px;
+        }
+
+        svg.sinistros {
+          position: fixed;
+          top: 265px;
+          left: 780px;
+        }   
+
+        svg.indice {
+          position: fixed;
+          top: 475px;
+          left: 780px;
+        }
+
+        div.info {
+          position: fixed;
+          top: 265px;
+          left: 1000px;
+          bottom: 450px;        
+        }
+
+        div.years_buttons {
+          position: fixed;
+          top: 450px;
+          left: 50px;
+        }        
+
+        div.years_buttons div {
+          background-color: rgb(251, 201, 127);
+          padding: 3px;
+          margin: 5px;
+        }        
+
+        h1 {
+        text-align: center;
+        color: blue;
+        }        
+
+        h2 {
+        text-align: center;
+        color: blue;
+        }
+
+        h3 {
+        text-align: center;
+        color: orange;
+        }  
+
+        h4 {
+        text-align: left;
+        color: black;
+        }               
+
+        h5 {
+        text-align: center;
+        color: black;
+        }                
+
+      </style>
+  </head>
+<body>
+  <script type="text/javascript">
+    /*
+      Use D3 to load the GeoJSON file
+    */
+    
+	d3.json("ms.json", chart);
+
+  </script>
+</body>
