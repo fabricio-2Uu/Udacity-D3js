@@ -120,7 +120,7 @@ function chart(error, brms) {
           });
 
 
-      //Function that generates a response to the clink on one of the regions
+      //Function that generates a response to the click on one of the regions
       function clicked(d) {
         if (active.node() === this) return reset();
         active.classed("active", false);
@@ -162,7 +162,7 @@ function chart(error, brms) {
         d3.select(".ind")
           .text("A média de veículos indenizados no últimos cinco anos na região foi de " + medInd + "%");
 
-        //Variable that define the bound of the region after one is selected (settled to 50%)
+        //Variable that define the bounds of the region after one is selected (settled to 50%)
         var bounds = path.bounds(d),
             dx = bounds[1][0] - bounds[0][0],
             dy = bounds[1][1] - bounds[0][1],
@@ -268,7 +268,7 @@ function chart(error, brms) {
 
       }
 
-      //Creating a set variables to set store the years
+      //Creating a set variables to store the years
       var years = d3.set();
       dadosCarro.forEach(function(d)
         {
@@ -290,6 +290,7 @@ function chart(error, brms) {
             return d['key'] == year;
         });
 
+        //Variable that filter the data bellow the given year for Brasil
         var nFiltered = dadosCarro.filter(function(d){
           return (parseInt(d.ano) <= year && d.estado == "BR");
         });
@@ -330,7 +331,7 @@ function chart(error, brms) {
                 }
               }
           catch(error) {
-                d3.selectAll(".aux").remove();                
+            console.log(error)              
           }
         }
 
